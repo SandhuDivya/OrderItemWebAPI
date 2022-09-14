@@ -7,5 +7,5 @@ RUN dotnet publish -c release -o /app
 FROM mcr.microsoft.com/dotnet/aspnet:5.0
 WORKDIR /app
 COPY --from=build /app .
-ENTRYPOINT ["dotnet", " OrderItemWebAPI.dll"]
+ENTRYPOINT ["dotnet", "  OrderItemWebAPI.dll"]
 Footer
