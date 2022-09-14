@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "kuberneetes28-5bee"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "kuberneetes28-5bee"
+  template:
+    metadata:
+      labels:
+        app: "kuberneetes28-5bee"
+    spec:
+      containers:
+        - name: "kuberneetes28-5bee"
+          image: "kuberneetes00.azurecr.io/kuberneetes28"
+          ports:
+          - containerPort: 80
