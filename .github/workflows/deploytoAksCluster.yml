@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: kuberneetes00.azurecr.io
+        username: ${{ secrets.acr_kuberneetes00_username }}
+        password: ${{ secrets.acr_kuberneetes00_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/" -f  "Dockerfile" -t kuberneetes00.azurecr.io/kuberneetes28:${{ github.sha }} --label dockerfile-path=Dockerfile
+        docker push kuberneetes00.azurecr.io/kuberneetes28:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_kuberneetes28_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep kuberneetes28b109 | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace kuberneetes28b109`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: kuberneetes28b109
+        container-registry-url: kuberneetes00.azurecr.io
+        container-registry-username: ${{ secrets.acr_kuberneetes00_username }}
+        container-registry-password: ${{ secrets.acr_kuberneetes00_password }}
+        secret-name: kuberneetes2dockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: kuberneetes28b109
+        manifests: |
+          manifests/deployment.yml
+          manifests/service.yml
+        images: |
+          kuberneetes00.azurecr.io/kuberneetes28:${{ github.sha }}
+        imagepullsecrets: |
+          kuberneetes2dockerauth
